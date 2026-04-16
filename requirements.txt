@@ -1,0 +1,13 @@
+matplotlib==3.10.1
+numpy==2.2.3
+pandas==2.2.3
+seaborn==0.13.2
+streamlit==1.41.1
+openpyxl==3.1.5
+pymysql == 1.1.1
+sqlalchemy == 2.0.41
+cryptography == 45.0.4
+pycparser == 2.22
+cffi == 1.17.1 
+scipy == 1.16.3
+scikit-learn == 1.8.0
