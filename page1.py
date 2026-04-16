@@ -41,6 +41,7 @@ def setup_custom_font():
     except Exception as e:
         st.warning(f"加载微软雅黑字体失败: {str(e)}，路径：{font_path}")
         return False
+setup_custom_font()
 
 def calculate_process_sigma_and_cpk(
     row,
@@ -163,7 +164,6 @@ def plot_imr_control_charts(df_analysis: pd.DataFrame,
                             therotical_value = '理论',
                             loss_rate_col: str = '损耗率') -> tuple[pd.DataFrame, pd.DataFrame]:
     """绘制IMR控制图（基于损耗率%）"""
-    setup_custom_font()
     
     df_analysis_copy = df_analysis.copy()
     df_control_copy = df_control_params.copy()
