@@ -42,7 +42,19 @@ setup_custom_font()
 # 全局配置
 plt.rcParams['axes.unicode_minus'] = False
 
-# 提前初始化，避免后续访问不存在的变量
+
+# ======== 主页面内容 ========  
+st.header("包材损耗率分析", divider="rainbow")
+with st.expander(label='说明'):
+    st.markdown('''
+                ℹ️ 操作流程：
+                1. 包材损耗率所需上传的Excel文件应包含: 复合管、纸盒、纸箱 三个Sheet
+                2. 先上传「历史耗用数据」
+                3. 再上传「月度耗用数据
+                4. 点击下载按钮，下载结果文件
+                ''') 
+    
+# 初始化，避免后续访问不存在的变量
 session_vars = [
     "historical_processed_fhg_p5", "batch_nodes_fhg_p5", "IMR_params_fhg_p5",
     "historical_processed_zh_p5", "batch_nodes_zh_p5", "IMR_params_zh_p5",
@@ -55,17 +67,6 @@ session_vars = [
 for var in session_vars:
     if var not in st.session_state:
         st.session_state[var] = None  # 初始化为None，避免变量不存在
-
-# ======== 主页面内容 ========  
-st.header("包材损耗率分析", divider="rainbow")
-with st.expander(label='说明'):
-    st.markdown('''
-                ℹ️ 操作流程：
-                1. 包材损耗率所需上传的Excel文件应包含: 复合管、纸盒、纸箱 三个Sheet
-                2. 先上传「历史耗用数据」
-                3. 再上传「月度耗用数据
-                4. 点击下载按钮，下载结果文件
-                ''') 
 
 with st.container(border=True):
 
