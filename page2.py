@@ -9,50 +9,22 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 
-# 导入app.py的工具函数
-from app import save_df_to_tempfile, load_df_from_tempfile
-
 # 自定义库
-from DP import dp4
+try:
+    from DP import dp4
+except ImportError:
+    st.error("缺少自定义库 DP.py，请确保 dp4 函数存在！")
+    st.stop()
 
 # 忽略无关警告
 import warnings
 warnings.filterwarnings('ignore')
 
-# ===================== 工具函数（保留原有逻辑） =====================
-def setup_custom_font():
-    font_filename = "MSYH.TTC"
-    current_script_dir = os.path.dirname(os.path.abspath(__file__))
-    font_dir = os.path.join(current_script_dir, "font")
-    font_path = os.path.join(font_dir, font_filename)
-    
-    if not os.path.exists(font_path):
-        st.warning(f"字体文件不存在：{font_path}")
-        return False
-
-    try:
-        fm.fontManager.addfont(font_path)
-        plt.rcParams['font.sans-serif'] = ['Microsoft YaHei']
-        plt.rcParams['axes.unicode_minus'] = False
-        return True
-    except Exception as e:
-        st.warning(f"加载字体失败: {str(e)}")
-        return False
-
-# ===================== 页面初始化（简化） =====================
-def init_session_state():
-    """仅校验全局初始化，不重复创建变量"""
-    if "global_session_initialized" not in st.session_state:
-        from app import init_session_state as init_global
-        init_global()
-
-init_session_state()
-setup_custom_font()
-
-# 全局配置
+# ===================== 工具函数（适配1.41.1） =====================
 plt.rcParams['axes.unicode_minus'] = False
+plt.rcParams['font.sans-serif'] = ['DejaVu Sans', 'SimHei', 'Microsoft YaHei']
 
-# ===================== 页面逻辑（仅修改session_state存储方式） =====================
+# ===================== 页面逻辑（适配1.41.1） =====================
 st.header("包材损耗率分析", divider="rainbow")
 with st.expander(label='说明'):
     st.markdown('''
@@ -68,9 +40,8 @@ with st.container(border=True):
     with col1:
         st.markdown('##### 1. 选择组织:')
     with col2:
-        Org = st.selectbox(label=" ",options=["口腔-JKC","口腔-JKY"])
+        Org = st.selectbox(label=" ",options=["口腔-JKC","口腔-JKY"], key="org_select_page2")  # 1.41.1 唯一key
         org = 'JKC' if Org == "口腔-JKC" else 'JKY'
-        # 保存小型变量
         st.session_state.org_page2 = org
 
     col4, col5, clo6 = st.columns([1, 2.5, 1])
@@ -81,13 +52,13 @@ with st.container(border=True):
             "历史耗用数据",
             type=["xlsx"],
             accept_multiple_files=False,
-            key="file1"
+            key="file1_page2"  # 1.41.1 唯一key
         )
         uploaded_file2 = st.file_uploader(
             "月度耗用数据",
             type=["xlsx"],
             accept_multiple_files=False,
-            key="file2"
+            key="file2_page2"  # 1.41.1 唯一key
         )
     
     if uploaded_file1 is not None and uploaded_file2 is not None:
@@ -152,7 +123,7 @@ with st.container(border=True):
                 col_data3 = imr_params3.pop(pl)
                 imr_params3.insert(loc=1, column=pl, value=col_data3)
 
-            # 保存小型变量（批量分类/控制参数）
+            # 保存小型变量
             st.session_state.batch_nodes_fhg_p5 = batch_nodes
             st.session_state.batch_nodes_zh_p5 = batch_nodes2
             st.session_state.batch_nodes_zx_p5 = batch_nodes3
@@ -221,7 +192,6 @@ with st.container(border=True):
                     df_control_params=imr_params,
                     category='复合管'
                 )
-                # 保存到临时文件
                 st.session_state.temp_fhg_outlier_p5 = save_df_to_tempfile(df_outlier[df_outlier['异常值'] == True])
                 st.session_state.temp_fhg_low_loss_rate = save_df_to_tempfile(fhg_low_loss_rate)
 
@@ -269,8 +239,10 @@ with st.container(border=True):
 
         except Exception as e:
             st.error(f"数据处理失败：{str(e)}")
+            import traceback
+            st.code(traceback.format_exc(), language="python")
         
-        # 下载功能（适配临时文件）
+        # 下载功能（适配1.41.1）
         st.markdown('##### 3. 结果下载:')
         def create_excel():
             output = io.BytesIO()
@@ -346,13 +318,15 @@ with st.container(border=True):
             load_df_from_tempfile(st.session_state.temp_zx_p5).empty
         ])
         
+        # 1.41.1 兼容的下载按钮
         st.download_button(
             label="下载结果",
             type="primary",
             data=create_excel(),
             file_name=f"{Org}-包材物耗分析_{current_time}.xlsx",
             mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            disabled=download_disabled
+            disabled=download_disabled,
+            key="download_page2"  # 唯一key
         )
         
     elif uploaded_file1 is None and uploaded_file2 is not None:

@@ -10,42 +10,22 @@ import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 from scipy.stats import norm
 
-# 导入app.py的工具函数（需确保app.py和page1.py在同一目录）
-from app import save_df_to_tempfile, load_df_from_tempfile
-
-# 自定义库
-from DP import dp3
+# 自定义库（确保 DP.py 存在）
+try:
+    from DP import dp3
+except ImportError:
+    st.error("缺少自定义库 DP.py，请确保 dp3 函数存在！")
+    st.stop()
 
 # 忽略无关警告
 import warnings
 warnings.filterwarnings('ignore')
 
-# 全局配置
-plt.rcParams['axes.unicode_minus'] = False    # 解决负号显示问题
+# ===================== 全局配置（适配1.41.1） =====================
+plt.rcParams['axes.unicode_minus'] = False
+plt.rcParams['font.sans-serif'] = ['DejaVu Sans', 'SimHei', 'Microsoft YaHei']  # 兼容1.41.1字体
 
 # ===================== 核心函数（完全保留原有逻辑） =====================
-def setup_custom_font():
-    """配置matplotlib使用自定义字体"""
-    font_filename = "MSYH.TTC"
-    current_script_dir = os.path.dirname(os.path.abspath(__file__))
-    font_dir = os.path.join(current_script_dir, "font")
-    font_path = os.path.join(font_dir, font_filename)
-    
-    if not os.path.exists(font_path):
-        st.warning(f"字体文件不存在：{font_path}")
-        return False
-
-    try:
-        fm.fontManager.addfont(font_path)
-        plt.rcParams['font.sans-serif'] = ['Microsoft YaHei']
-        plt.rcParams['axes.unicode_minus'] = False
-        return True
-    except Exception as e:
-        st.warning(f"加载微软雅黑字体失败: {str(e)}，路径：{font_path}")
-        return False
-
-setup_custom_font()
-
 def calculate_process_sigma_and_cpk(
     row,
     cl_col='I图中心值(CL)',
@@ -272,6 +252,7 @@ def plot_imr_control_charts(df_analysis: pd.DataFrame,
             st.warning("无有效线体数据，无法绘制控制图")
             return df_out_of_control, df_control_limits
         
+        # 1.41.1 兼容的 tabs 用法
         tabs = st.tabs(valid_lines)
         for tab_idx, line in enumerate(valid_lines):
             with tabs[tab_idx]:
@@ -380,7 +361,7 @@ def plot_imr_control_charts(df_analysis: pd.DataFrame,
                     ax2.legend(loc='upper right', fontsize=10)
                     
                     plt.tight_layout()
-                    st.pyplot(fig)
+                    st.pyplot(fig)  # 1.41.1 兼容的绘图方式
                     plt.close(fig)
     
     st.subheader("超出控制限损耗数据（%）")
@@ -388,7 +369,7 @@ def plot_imr_control_charts(df_analysis: pd.DataFrame,
     
     return df_out_of_control, df_control_limits
 
-# ===================== 页面逻辑（仅修改session_state存储方式） =====================
+# ===================== 页面逻辑（适配1.41.1） =====================
 st.header("膏体损耗率分析", divider="rainbow")
 with st.expander(label='说明'):
     st.markdown('''
@@ -415,12 +396,11 @@ with st.container(border=True):
         ##### 1. 选择组织:
         ''')
     with col2:
-        Org = st.selectbox(label=" ",options=["口腔-JKC","口腔-JKY"])
+        Org = st.selectbox(label=" ",options=["口腔-JKC","口腔-JKY"], key="org_select_page1")  # 1.41.1 必须指定唯一key
         if Org == "口腔-JKC":
             org = 'JKC'
         else:
             org = 'JKY'
-        # 保存小型变量（组织信息）
         st.session_state.org_page1 = org
 
     col4, col5, clo6 = st.columns([1, 2.5, 1])
@@ -432,12 +412,14 @@ with st.container(border=True):
         uploaded_file1 = st.file_uploader(
             "历史耗用数据",
             type=["xlsx"],
-            accept_multiple_files=False
+            accept_multiple_files=False,
+            key="file1_page1"  # 1.41.1 唯一key
         )
         uploaded_file2 = st.file_uploader(
             "月度耗用数据",
             type=["xlsx"],
-            accept_multiple_files=False
+            accept_multiple_files=False,
+            key="file2_page1"  # 1.41.1 唯一key
         )
     
     if uploaded_file1 is not None and uploaded_file2  is not None :
@@ -446,18 +428,14 @@ with st.container(border=True):
             # 读取历史数据
             df = pd.read_excel(uploaded_file1, engine="openpyxl", sheet_name='膏体', header=0)
             df1 = dp3.get_raw_data(df)
-            # 保存到临时文件，仅存路径到session_state
             st.session_state.temp_historical_file = save_df_to_tempfile(df1)
             
             # 处理历史数据
             res, batch_nodes, anova_results = dp3.batch_kmeans_clustering(df1)
             res1, df_unknownbatch, df_lowLossRate, df_highLossRate = dp3.filter_raw_data(res)
             
-            # 保存小型变量
             st.session_state.batch_nodes_page1 = batch_nodes
             st.session_state.anova_results_page1 = anova_results
-            
-            # 保存大型DataFrame到临时文件
             st.session_state.temp_historical_low_loss = save_df_to_tempfile(df_lowLossRate)
             st.session_state.temp_historical_high_loss = save_df_to_tempfile(df_highLossRate)
 
@@ -477,9 +455,7 @@ with st.container(border=True):
             col_data = imr_params.pop(pl)
             imr_params.insert(loc=2, column=pl, value=col_data)
             
-            # 保存控制图参数（小型DataFrame，可直接存）
             st.session_state.IMR_params_page1 = imr_params
-            # 保存过滤后的历史数据到临时文件
             st.session_state.temp_historical_filtered = save_df_to_tempfile(clean_histdf)
             
             st.success(f"✅ 历史数据处理完成：{uploaded_file1.name}")
@@ -510,7 +486,6 @@ with st.container(border=True):
 
             # 处理当月数据
             df2_processed = dp3.get_raw_data(df2)
-            # 合并历史+当月数据
             df_hist = load_df_from_tempfile(st.session_state.temp_historical_file)
             df_res = pd.concat([df_hist, df2_processed],axis=0, ignore_index=True)
             df_res['年月份'] = df_res['年月'].apply(dp3.convert_chinese_year_month)
@@ -528,7 +503,6 @@ with st.container(border=True):
             df_lowLossRate_standard = standardize_data_columns(df_lowLossRate, 'low_loss')
             df_highLossRate_standard = standardize_data_columns(df_highLossRate, 'high_loss')
             
-            # 保存到临时文件
             st.session_state.temp_current_month_low_loss = save_df_to_tempfile(df_lowLossRate_standard)
             st.session_state.temp_current_month_high_loss = save_df_to_tempfile(df_highLossRate_standard)
             
@@ -540,8 +514,11 @@ with st.container(border=True):
             st.success(f"✅ 月度数据处理完成：{uploaded_file2.name}")
         except Exception as e:
             st.error(f"数据处理失败：{str(e)}")
+            # 1.41.1 兼容的异常回溯
+            import traceback
+            st.code(traceback.format_exc(), language="python")
         
-        # 下载功能（适配临时文件）
+        # 下载功能（适配1.41.1）
         st.markdown('''
         ##### 3. 结果下载:
         ''')
@@ -589,12 +566,14 @@ with st.container(border=True):
             return output.getvalue()
         
         current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
+        # 1.41.1 兼容的下载按钮
         st.download_button(
             label="下载结果",
             type="primary",
             data=create_excel(),
             file_name=f"{Org}-膏体物耗分析_{current_time}.xlsx",
-            mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            key="download_page1"  # 唯一key
         )
         
     elif uploaded_file1 is None and uploaded_file2  is not None :
