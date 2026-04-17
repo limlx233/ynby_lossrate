@@ -446,44 +446,6 @@ def plot_imr_control_charts(df_analysis: pd.DataFrame,
     
     return df_out_of_control, df_control_limits
 
-# ===================== 页面 =====================
-# 【新增】初始化 Session State 变量，防止未定义报错
-if 'cached_historical_file' not in st.session_state:
-    st.session_state.cached_historical_file = None
-if 'cached_current_month_file' not in st.session_state:
-    st.session_state.cached_current_month_file = None
-if 'batch_nodes' not in st.session_state:
-    st.session_state.batch_nodes = None
-if 'anova_results' not in st.session_state:
-    st.session_state.anova_results = None
-if 'historical_processed_data' not in st.session_state:
-    st.session_state.historical_processed_data = None
-if 'historical_filtered_data' not in st.session_state:
-    st.session_state.historical_filtered_data = None
-if 'historical_unknown_batch' not in st.session_state:
-    st.session_state.historical_unknown_batch = None
-if 'historical_low_loss' not in st.session_state:
-    st.session_state.historical_low_loss = None
-if 'historical_high_loss' not in st.session_state:
-    st.session_state.historical_high_loss = None
-if 'IMR_params' not in st.session_state:
-    st.session_state.IMR_params = None
-if 'current_month_raw_data' not in st.session_state:
-    st.session_state.current_month_raw_data = None
-if 'current_month_matched_data' not in st.session_state:
-    st.session_state.current_month_matched_data = None
-if 'current_month_filtered_data' not in st.session_state:
-    st.session_state.current_month_filtered_data = None
-if 'current_month_unknown_batch' not in st.session_state:
-    st.session_state.current_month_unknown_batch = None
-if 'current_month_low_loss' not in st.session_state:
-    st.session_state.current_month_low_loss = None
-if 'current_month_high_loss' not in st.session_state:
-    st.session_state.current_month_high_loss = None
-if 'current_month_outliers' not in st.session_state:
-    st.session_state.current_month_outliers = None
-if 'current_month_control_limits' not in st.session_state:
-    st.session_state.current_month_control_limits = None
 
 
 # ===================== 页面 =====================

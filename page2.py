@@ -39,23 +39,12 @@ def setup_custom_font():
 
 # ===================== 核心修复：会话状态初始化函数 =====================
 def init_session_state():
-    """安全初始化会话状态，避免提前访问"""
-    # 仅在首次加载/未初始化时执行
-    if "session_initialized" not in st.session_state:
-        session_vars = [
-            "historical_processed_fhg_p5", "batch_nodes_fhg_p5", "IMR_params_fhg_p5",
-            "historical_processed_zh_p5", "batch_nodes_zh_p5", "IMR_params_zh_p5",
-            "historical_processed_zx_p5", "batch_nodes_zx_p5", "IMR_params_zx_p5",
-            "current_fhg_p5", "current_zh_p5", "current_zx_p5",
-            "fhg_outlier_p5", "zh_outlier_p5", "zx_outlier_p5",
-            "fhg_p5", "zh_p5", "zx_p5",
-            "fhg_low_loss_rate", "zh_low_loss_rate", "zx_low_loss_rate"
-        ]
-        for var in session_vars:
-            if var not in st.session_state:
-                st.session_state[var] = None
-        # 标记初始化完成
-        st.session_state.session_initialized = True
+    """简化初始化：仅校验全局初始化，不再重复创建变量"""
+    # 确保全局初始化已完成
+    if "global_session_initialized" not in st.session_state:
+        # 回退：调用全局初始化（防止极端情况）
+        from app import init_all_session_state
+        init_all_session_state()
 
 # ======== 主页面逻辑（核心：先初始化，再渲染） ========
 
